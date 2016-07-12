@@ -3,60 +3,14 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Véhicule Ligne Droite</title>
-		
-		<script>
-		//variables :
-		// 1 m = 10 px
-		var WIDTH = 1010            // OF SCREEN IN PIXELS
-		var HEIGHT = 500            // OF SCREEN IN PIXELS
-		var BALLS = 1               // IN SIMULATION
-		var WALL = 5                // FROM SIDE IN PIXELS
-		//var WALL_FORCE = 400        // ACCELERATION PER MOVE
-		//var SPEED_LIMIT = 30        // FOR ball VELOCITY
-		var SPEED = 1              // m  / s : vitesse de départ
-		var StartSPEED = SPEED
-		var ACCELERATION = 1.39     // m / s²
-		var DECELERATION = 0
-		var BALL_RADIUS = 10        // FOR ballS IN PIXELS
-		var SPEED_LIMIT = 40         // km / h
-		//var OFFSET_START = 20       // FROM WALL IN PIXELS
-		//var FRAMES_PER_SEC = 40     // SCREEN UPDATE RATE
-		var END = False             // Fin de l'animation ?
-		var FRICTION = 0.8          // Coefficient cinétique de friction
-		var MASS = 1500             // Kg Poids du vehicule
-		var flag = 0                // critère d'arret
-		var x = 0                   // position du véhicule
-		var DFA = 0                   // distance de freinage atteinte ?
-		
-		function can()
-{
-    var canvas = document.getElementById('mon_canvas');
-        if(!canvas)
-        {
-            alert("Impossible de récupérer le canvas");
-            return;
-        }
-
-    var context = canvas.getContext('2d');
-        if(!context)
-        {
-            alert("Impossible de récupérer le context du canvas");
-            return;
-        }
-			//cercle du vehicule
-	context.beginPath();
-	var i = context.arc(x+BALL_RADIUS, HEIGHT/2, BALL_RADIUS, 0, Math.PI*2);
-	context.stroke();
-	context.closePath();
-				
-}
-		</script>
+		<script src = "VehiculeLigneDroite.js" type="application/x-javascript"></script>
 	</head>
-	<body>
-		<canvas id="mon_canvas" width= 1010 height= 500>
+	<body onload = "init()">
+		<canvas id="mon_canvas" width="1010" height="500">
             Votre navigateur ne supporte pas l'affichage
         </canvas>
-		
-	<!-- <button type="button" onclick= "function()" >Click Me!</button> -->
+	<button type = "button" onclick="start_it()"> Go </button>
+	<button type = "button" onclick="stop_it()"> Pause </button>
+	
 	</body>
 </html>
