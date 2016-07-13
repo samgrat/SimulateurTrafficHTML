@@ -20,41 +20,45 @@
 	var flag = 0;                // critère d'arret
 	var x = 0;                   // position du véhicule
 	var DFA = 0;                   // distance de freinage atteinte ?
-	
-	var i = {x:x+BALL_RADIUS*2,y:HEIGHT/2,rayon:BALL_RADIUS}
-	console.log(i)
+
+	var i = [
+		x+BALL_RADIUS*2,
+		HEIGHT/2,
+		BALL_RADIUS];
+
+	console.log(i);
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
 function accelerate(){
     if (SPEED + ACCELERATION*0.02 <= SPEED_LIMIT/3.6) {  // si le véhicule ne va pas dépasser la limite de vitesse (km/h vers m/s: /3.6)
-		SPEED += ACCELERATION*0.02}						// la boucle s'actualise toute les 20 ms d'où le *0.02
+		SPEED += ACCELERATION*0.02;}						// la boucle s'actualise toute les 20 ms d'où le *0.02
     else if (SPEED > SPEED_LIMIT/3.6){            		// si le véhicule a dépassé la vitesse limite il freine
-		SPEED -= ACCELERATION*0.02}						// ralentir
+		SPEED -= ACCELERATION*0.02;}						// ralentir
 }// fin accelerate()
 
 function decelerate(){
     if (DFA == 0){ 		//Pour n'affecter a Decceleration une valeur une seule fois
-        DECELERATION = (SPEED*SPEED)/(2*((WIDTH-BALL_RADIUS-x)/10))      // a = v²/2x
-        DFA = 1
-		SPEED -= DECELERATION*0.02}
+        DECELERATION = (SPEED*SPEED)/(2*((WIDTH-BALL_RADIUS-x)/10));     // a = v²/2x
+        DFA = 1;
+		SPEED -= DECELERATION*0.02;}
     else{
-		SPEED -= DECELERATION*0.02}
+		SPEED -= DECELERATION*0.02;}
 }// fin decelerate()
 
 function stop_it(){
     // arret de l'animation
-    flag =0
+    flag =0;
 }// fin stop_it()
 
 function start_it(){
     // démarrage de l'animation
     if (END == true){
-        i.x = 0
+        i[0] = 0;
 		END = false}
     if (flag == 0){       // pour ne lancer qu'une seule boucle
-        flag =1
-		moveCircle()
+        flag =1;
+		window.requestAnimationFrame(moveCircle);
 		}
 }//fin start_it()
 
@@ -62,64 +66,81 @@ function moveCircle(){
     if (SPEED != 0){                // si le demarrage ne se fait pas à vitesse nulle
 
         //if    distance au mur      >      distance de freinage       + Distance de sécurité    :
-        if ((WIDTH-BALL_RADIUS-i.x)/10 > ((Math.pow(SPEED,2)/(2*FRICTION*9.81))+BALL_RADIUS/10 && DFA == 0)){
-			accelerate()} //accélérer
+        if ((WIDTH-BALL_RADIUS-i[0])/10 > ((Math.pow(SPEED,2)/(2*FRICTION*9.81))+BALL_RADIUS/10 && DFA == 0)){
+			accelerate();} //accélérer
         else{
-			decelerate()} //ralentir
+			decelerate();} //ralentir
 	}
     else{
-        console.log("Speed 1 ",SPEED)
-		accelerate()}
+        console.log("Speed 1 ",SPEED);
+		accelerate();}
 
-    if (i.x<WIDTH-BALL_RADIUS && SPEED > 0){ // si la voiture n'a pas atteint la fin et n'est pas arretée
-		i.x+=SPEED/5}
+    if (i[0]<WIDTH-BALL_RADIUS && SPEED > 0){ // si la voiture n'a pas atteint la fin et n'est pas arretée
+		draw();
+		//i[0]+=SPEED/5;
+		}
     else{
-        END = true
-        SPEED = StartSPEED
-        DFA= 0
-		stop_it()}
-		draw()
+        END = true;
+        SPEED = StartSPEED;
+        DFA= 0;
+		console.log("///////////END = true///////////")
+		stop_it();}
 
 }// fin de moveCircle
 
 function draw(){
 	var canvas = document.getElementById('mon_canvas');
     var context = canvas.getContext('2d');
-	
-		// on "efface" l'ancien cercle
-	context.beginPath();
-	context.arc(i.x+BALL_RADIUS*2, HEIGHT/2, BALL_RADIUS*2, 0, Math.PI*2);
+
+		// on efface le cercle
+	context.clearRect(i[0]-i[2],i[1]-i[2],20,20);
+	/*context.rect(i[0]-i[2],i[1]-i[2],20,20); 
 	context.fillStyle = "white";
-	context.fill();
-	context.closePath();
-	
-	console.log("translating... ","x= ",i.x)
-	i.x =+ BALL_RADIUS
-	console.log("x2= ",i.x)
-	
+	context.fill();*/
+	console.log(i);
+
+	console.log("translating... ","x= ",i[0]);
+	i[0]+=SPEED/5;
+
 		// on le redessine
 	context.beginPath();
-	context.arc(i.x+BALL_RADIUS*2, HEIGHT/2, BALL_RADIUS, 0, Math.PI*2);
+	context.arc(i[0], HEIGHT/2, BALL_RADIUS, 0, Math.PI*2);
 	context.fillStyle = "red";
 	context.fill();
 	context.closePath();
-	console.log("translated LUL")
-	
+	console.log("x2= ",i[0]);
+
 	if (flag >0){
-		setTimeout(moveCircle(), 10000);}
+		console.log("///////////requestAnimationFrame///////////")
+		//setTimeout(moveCircle(), 20000);
+		window.requestAnimationFrame(moveCircle);}
 }// fin de draw()
+
 
 function init(){
 
     var canvas = document.getElementById('mon_canvas');
     var context = canvas.getContext('2d');
- 
-	
+
 		//cercle du vehicule
 	context.beginPath();
-	context.arc(BALL_RADIUS*2, HEIGHT/2, BALL_RADIUS, 0, Math.PI*2);
+	context.arc(i[0], i[1], i[2], 0, Math.PI*2);
 	context.fillStyle = "red";
 	context.fill();
 	context.closePath();
-	alert("did it dad");
-	}// fin de draw()
+	
+		//route
+	context.beginPath();
+	context.moveTo(0, HEIGHT/2-(i[2]+3));
+	context.lineTo(WIDTH,HEIGHT/2-(i[2]+3));
+	context.stroke();
+	context.closePath();
+	
+	context.beginPath();
+	context.moveTo(0, HEIGHT/2+(i[2]+3));
+	context.lineTo(WIDTH,HEIGHT/2+(i[2]+3));
+	context.stroke();
+	context.closePath();
+	
+	console.log("///////////Init Ok///////////")
+	}// fin de init()
