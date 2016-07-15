@@ -19,7 +19,7 @@
 	var FRICTION = 0.8;          // Coefficient cinétique de friction
 	var MASS = 1500;             // Kg Poids du vehicule
 	var flag = 0;                // critère d'arret
-	var x = 0;                   // position du véhicule
+	var x = 0;                   // position de départ du véhicule
 	var DFA = new Boolean(false);// distance de freinage atteinte ?
 	var FRouge = new Boolean(false);
 	var DAA = 0;
@@ -56,9 +56,16 @@ function stop_it(){
 }// fin stop_it()
 
 function start_it(){
+	var canvas = document.getElementById('mon_canvas');
+    var context = canvas.getContext('2d');
     // démarrage de l'animation
+	
     if (END == true){
-        i[0] = 0;
+		context.rect(i[0]-i[2],i[1]-i[2],25,20); 
+		context.fillStyle = "white";
+		context.fill();
+		
+		i[0] = 0;
 		END = false}
     if (flag == 0){       // pour ne lancer qu'une seule boucle
         flag =1;
@@ -70,17 +77,17 @@ function moveCircle(){
     if (SPEED != 0){                // si le demarrage ne se fait pas à vitesse nulle
 
         if (FRouge == true && i[0] < WIDTH-DFM){ // si le feu est rouge et que le vehicule ne l'a pas dépassé
-			DAA = (WIDTH-DFM - BALL_RADIUS-i[0])/10} // La distance avant arret est celle du véhicule au feu
+			DAA = (WIDTH-DFM - BALL_RADIUS-i[0])/10;} // La distance avant arret est celle du véhicule au feu
         else{
-			DAA = (WIDTH-BALL_RADIUS-i[0])/10} // La distance avant arret est celle du véhicule au mur
+			DAA = (WIDTH-BALL_RADIUS-i[0])/10;} // La distance avant arret est celle du véhicule au mur
 
         //if Distance Avant Arret > distance de freinage + Distance de sécurité:
         if (DAA > ((Math.pow(SPEED,2))/(2*FRICTION*9.81))+BALL_RADIUS/10 && DFA == false){
-			accelerate()}
+			accelerate();}
         else if (DAA <= ((Math.pow(SPEED,2))/(2*FRICTION*9.81))+BALL_RADIUS/10){ // sinon on freine
-			decelerate()}
+			decelerate();}
         else{ //si le feu repasse au vert
-			accelerate()}
+			accelerate();}
 	}
     else{
 		accelerate();}
@@ -92,11 +99,12 @@ function moveCircle(){
 		}
     else{
 		if (DAA == (WIDTH-BALL_RADIUS-i[0])/10){
-			END = true;}
+			END = true;
+			console.log("///////////RESTART///////////"); // RENDRE CA PLUS JOLI
+			flag = 0;
+			start_it();}
         SPEED = StartSPEED;
         DFA= false;
-		console.log("///////////END = true///////////")
-		stop_it();}
 
 }// fin de moveCircle
 
@@ -109,8 +117,8 @@ function draw(){
 	context.rect(i[0]-i[2],i[1]-i[2],25,20); 
 	context.fillStyle = "white";
 	context.fill();
-	console.log(i);
 	
+	console.log(i);
 	i[0]+=SPEED/5;
 
 		// on le redessine
@@ -168,13 +176,18 @@ function change_feu(){
 		FRouge = false;
 		console.log('Feu vert');}
         if (END == false){ // si le vehicule n'est pas arreté au mur de fin
-			start_it()}
-}// fin cahnge_feu()
+			start_it();}
+}// fin change_feu()
 
 function change_limit(limit){
 	SPEED_LIMIT = limit;
 	console.log('Limite de vitesse = ', SPEED_LIMIT);
-}// fin de change_limit
+}// fin de change_limit()
+
+function change_acc(acc){
+	ACCELERATION = acc;
+	console.log('accélération véhicule = ', ACCELERATION);
+}// fin de change_acc
 
 function init(){
 
