@@ -1,9 +1,10 @@
 //variables :
 	// 1 m = 10 px
 	var WIDTH = 1010;            // OF SCREEN IN PIXELS
-	var HEIGHT = 500;            // OF SCREEN IN PIXELS
+	var HEIGHT = 400;            // OF SCREEN IN PIXELS
 	var BALLS = 1;               // IN SIMULATION
 	var WALL = 5;                // FROM SIDE IN PIXELS
+	var DFM = 500;					// distance feu/mur
 	//var WALL_FORCE = 400;        // ACCELERATION PER MOVE
 	//var SPEED_LIMIT = 30;        // FOR ball VELOCITY
 	var SPEED = 1;              // m  / s : vitesse de départ
@@ -19,8 +20,10 @@
 	var MASS = 1500;             // Kg Poids du vehicule
 	var flag = 0;                // critère d'arret
 	var x = 0;                   // position du véhicule
-	var DFA = 0;                   // distance de freinage atteinte ?
-
+	var DFA = new Boolean(false);// distance de freinage atteinte ?
+	var FRouge = new Boolean(false);
+	var DAA = 0;
+	
 	var i = [
 		x+BALL_RADIUS*2,
 		HEIGHT/2,
@@ -31,6 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 function accelerate(){
+	DFA = false
     if (SPEED + ACCELERATION*0.02 <= SPEED_LIMIT/3.6) {  // si le véhicule ne va pas dépasser la limite de vitesse (km/h vers m/s: /3.6)
 		SPEED += ACCELERATION*0.02;}						// la boucle s'actualise toute les 20 ms d'où le *0.02
     else if (SPEED > SPEED_LIMIT/3.6){            		// si le véhicule a dépassé la vitesse limite il freine
@@ -38,9 +42,9 @@ function accelerate(){
 }// fin accelerate()
 
 function decelerate(){
-    if (DFA == 0){ 		//Pour n'affecter a Decceleration une valeur une seule fois
-        DECELERATION = (SPEED*SPEED)/(2*((WIDTH-BALL_RADIUS-x)/10));     // a = v²/2x
-        DFA = 1;
+    if (DFA == false){ 		//Pour n'affecter a Decceleration une valeur une seule fois
+        DECELERATION = (SPEED*SPEED)/(2*DAA);     // a = v²/2x
+        DFA = true;
 		SPEED -= DECELERATION*0.02;}
     else{
 		SPEED -= DECELERATION*0.02;}
@@ -58,31 +62,39 @@ function start_it(){
 		END = false}
     if (flag == 0){       // pour ne lancer qu'une seule boucle
         flag =1;
-		window.requestAnimationFrame(moveCircle);
+		moveCircle();
 		}
 }//fin start_it()
 
 function moveCircle(){
     if (SPEED != 0){                // si le demarrage ne se fait pas à vitesse nulle
 
-        //if    distance au mur      >      distance de freinage       + Distance de sécurité    :
-        if ((WIDTH-BALL_RADIUS-i[0])/10 > ((Math.pow(SPEED,2)/(2*FRICTION*9.81))+BALL_RADIUS/10 && DFA == 0)){
-			accelerate();} //accélérer
+        if (FRouge == true && i[0] < WIDTH-DFM){ // si le feu est rouge et que le vehicule ne l'a pas dépassé
+			DAA = (WIDTH-DFM - BALL_RADIUS-i[0])/10} // La distance avant arret est celle du véhicule au feu
         else{
-			decelerate();} //ralentir
+			DAA = (WIDTH-BALL_RADIUS-i[0])/10} // La distance avant arret est celle du véhicule au mur
+
+        //if Distance Avant Arret > distance de freinage + Distance de sécurité:
+        if (DAA > ((Math.pow(SPEED,2))/(2*FRICTION*9.81))+BALL_RADIUS/10 && DFA == false){
+			accelerate()}
+        else if (DAA <= ((Math.pow(SPEED,2))/(2*FRICTION*9.81))+BALL_RADIUS/10){ // sinon on freine
+			decelerate()}
+        else{ //si le feu repasse au vert
+			accelerate()}
 	}
     else{
-        console.log("Speed 1 ",SPEED);
 		accelerate();}
-
-    if (i[0]<WIDTH-BALL_RADIUS && SPEED > 0){ // si la voiture n'a pas atteint la fin et n'est pas arretée
+	console.log("Speed",SPEED*3.60);
+			
+    if (DAA>0 && SPEED > 0){ // si la voiture n'a pas atteint la fin et n'est pas arretée
 		draw();
 		//i[0]+=SPEED/5;
 		}
     else{
-        END = true;
+		if (DAA == (WIDTH-BALL_RADIUS-i[0])/10){
+			END = true;}
         SPEED = StartSPEED;
-        DFA= 0;
+        DFA= false;
 		console.log("///////////END = true///////////")
 		stop_it();}
 
@@ -93,13 +105,12 @@ function draw(){
     var context = canvas.getContext('2d');
 
 		// on efface le cercle
-	context.clearRect(i[0]-i[2],i[1]-i[2],20,20);
-	/*context.rect(i[0]-i[2],i[1]-i[2],20,20); 
+	//context.clearRect(i[0]-i[2]+5,i[1]-i[2],25,20);
+	context.rect(i[0]-i[2],i[1]-i[2],25,20); 
 	context.fillStyle = "white";
-	context.fill();*/
+	context.fill();
 	console.log(i);
-
-	console.log("translating... ","x= ",i[0]);
+	
 	i[0]+=SPEED/5;
 
 		// on le redessine
@@ -108,14 +119,62 @@ function draw(){
 	context.fillStyle = "red";
 	context.fill();
 	context.closePath();
-	console.log("x2= ",i[0]);
 
 	if (flag >0){
-		console.log("///////////requestAnimationFrame///////////")
 		//setTimeout(moveCircle(), 20000);
 		window.requestAnimationFrame(moveCircle);}
 }// fin de draw()
 
+function change_feu(){
+	var canvas = document.getElementById('mon_canvas');
+    var context = canvas.getContext('2d');
+	
+	if (FRouge == false){
+		
+		/*context.beginPath();
+		context.arc(WIDTH-DFM, HEIGHT/2-(i[2]+20), 10, 0, Math.PI*2);
+		context.fillStyle = "red";
+		context.fill();
+		context.closePath();
+		 A DEBUG */
+	
+        context.beginPath();
+		context.moveTo(WIDTH-DFM, HEIGHT/2-(i[2]+10));
+		context.lineTo(WIDTH-DFM,HEIGHT/2-(i[2]+30));
+		context.lineWidth = 20;
+		context.strokeStyle = 'red';
+		context.stroke();
+		context.closePath();
+		
+		FRouge = true;
+		console.log('Feu rouge');}
+    else{
+		
+        /*context.beginPath();
+		context.arc(WIDTH-DFM, HEIGHT/2-(i[2]+20), 10, 0, Math.PI*2);
+		context.fillStyle = "green";
+		context.fill();
+		context.closePath();
+		 A DEBUG */
+		
+		context.beginPath();
+		context.moveTo(WIDTH-DFM, HEIGHT/2-(i[2]+10));
+		context.lineTo(WIDTH-DFM,HEIGHT/2-(i[2]+30));
+		context.lineWidth = 20;
+		context.strokeStyle = 'green';
+		context.stroke();
+		context.closePath();
+		
+		FRouge = false;
+		console.log('Feu vert');}
+        if (END == false){ // si le vehicule n'est pas arreté au mur de fin
+			start_it()}
+}// fin cahnge_feu()
+
+function change_limit(limit){
+	SPEED_LIMIT = limit;
+	console.log('Limite de vitesse = ', SPEED_LIMIT);
+}// fin de change_limit
 
 function init(){
 
@@ -142,5 +201,22 @@ function init(){
 	context.stroke();
 	context.closePath();
 	
-	console.log("///////////Init Ok///////////")
+		//feu
+		
+	/*context.beginPath();
+	context.arc(WIDTH-DFM, HEIGHT/2-(i[2]+20), 10, 0, Math.PI*2);
+	context.fillStyle = "green";
+	context.fill();
+	context.closePath();
+	 A DEBUG */
+	
+	context.beginPath();
+	context.moveTo(WIDTH-DFM, HEIGHT/2-(i[2]+10));
+	context.lineTo(WIDTH-DFM, HEIGHT/2-(i[2]+30));
+	context.lineWidth = 20;
+	context.strokeStyle = 'green';
+	context.stroke();
+	context.closePath();
+	
+	console.log("///////////Init Ok///////////");
 	}// fin de init()

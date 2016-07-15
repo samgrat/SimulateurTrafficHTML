@@ -6,13 +6,15 @@
 		<script src = "VehiculeLigneDroite.js" type="application/x-javascript"></script>
 	</head>
 	<body onload = "init()">
-		<canvas id="mon_canvas" width="1020" height="500">
+		<canvas id="mon_canvas" width="1020" height="400">
             Votre navigateur ne supporte pas l'affichage
         </canvas>
 	<button type = "button" onclick="start_it()"> Go </button>
 	<button type = "button" onclick="stop_it()"> Pause </button>
 	<button type = "button" onclick="change_feu()"> Feu </button>
 
+	<input type="range" min="0" max="100" value="40" oninput="document.getElementById('AfficheRange').textContent='limite de vitesse: '+value+' km/h';change_limit(value)" />
+	<p> <span id="AfficheRange">limite de vitesse: 40 km/h</span> </p>
 	
 	</body>
 </html>
