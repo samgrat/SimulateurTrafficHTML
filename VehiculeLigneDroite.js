@@ -151,7 +151,7 @@ function change_feu(){
 		feuVert.graphics.clear().beginFill("#30c375").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
 
 		FRouge = false;
-		if (i[j].end == false){ // si le vehicule n'est pas arreté au mur de fin
+		if (i[j].end == false && i[j].x != xzero+j*(BALL_RADIUS*2+BALL_RADIUS/10)){ // si le vehicule n'est pas arreté au mur de fin
 		start_it();}
 		}
 }// fin change_feu()
@@ -175,9 +175,24 @@ function DoNothing(){
 	var Nothing = null;
 }
 
+function handleEvent(evt){
+	var stage = new createjs.Stage("mon_canvas");
+	
+	if (evt.type == 'mouseover'){
+		createjs.Tween.get(texte).to({x: i[evt.target.number].x, y:i[evt.target.number].y+30});
+		texte.text = "Position: "+(i[evt.target.number].x/10).toFixed(2)+" m"+"\n"+"Vitesse: "+i[evt.target.number].speed.toFixed(2)+" km/h";
+		}
+	
+	 if(evt.type == "mouseout"){
+		 texte.text = ""
+	 }
+}
+
 function init(){
 
 	var stage = new createjs.Stage("mon_canvas");
+	// Affichage mouseover
+	stage.enableMouseOver();
 	
 	//var canvas = document.getElementById('mon_canvas');
     //var context = canvas.getContext('2d');
@@ -196,12 +211,18 @@ function init(){
 		circle.daa = WIDTH-BALL_RADIUS;
 		circle.decel = 0;
 		
+		circle.number = BALLS -k
+		circle.on("mouseover", handleEvent);
+		circle.on('mouseout', handleEvent);
+		
 		i[BALLS - k] = circle
 		stage.addChild(circle)
 		// Véhicule i = (x,y, speed, End: Move: Le véhicule a atteint le mur ?,
 		// DFA: Move: Le véhicule a atteint la distance de freinage ?,
 		// DAA: Distance avant que le vehicule doive s'arrêter, Vitesse de decelération)
 	}
+		// texte
+	texte = new createjs.Text("", "black")
 	
 		// création route
 	var route = new createjs.Shape();
@@ -232,8 +253,7 @@ function init(){
 	feuVert.graphics.beginFill("#30c375").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7); // Intérieur feu vert
 	
 	
-	stage.addChild(route, feu, feuRouge, feuVert);
-	
+	stage.addChild(route, feu, feuRouge, feuVert, texte);
 
 	console.log("///////////Init Ok///////////");
 	
