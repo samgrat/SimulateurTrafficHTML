@@ -4,6 +4,8 @@
 		<meta charset="UTF-8" />
 		<title>Véhicule Ligne Droite</title>
 		<script src = "VehiculeLigneDroite.js" type="application/x-javascript"></script>
+		<script src="https://code.createjs.com/tweenjs-0.6.2.min.js"></script>
+		<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
 	</head>
 	<body onload = "init()">
 		<canvas id="mon_canvas" width="1020" height="400">
@@ -16,7 +18,7 @@
 	<input type="range" min="0" max="100" value="40" oninput="document.getElementById('AfficheLimit').textContent='limite de vitesse: '+value+' km/h';change_limit(value)" />
 	<p> <span id="AfficheLimit">limite de vitesse: 40 km/h</span> </p>
 	
-	<input type="range" min="0.00" max="3.00" step="0.01" value="1.39"  oninput="document.getElementById('AfficheAcc').textContent='accélération véhicules: '+value+' m/s²';change_acc(value)" />
+	<input type="range" min="0.00" max="6.00" step="0.01" value="1.39"  oninput="document.getElementById('AfficheAcc').textContent='accélération véhicules: '+value+' m/s²';change_acc(value)" />
 	<p> <span id="AfficheAcc">accélération véhicules: 1.39 m/s²</span> </p>
 	
 	</body>

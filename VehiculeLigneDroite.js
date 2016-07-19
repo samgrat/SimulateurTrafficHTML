@@ -19,7 +19,7 @@
 	var FRICTION = 0.8;          // Coefficient cinétique de friction
 	var MASS = 1500;             // Kg Poids du vehicule
 	var flag = 0;                // critère d'arret
-	var x = 0;                   // position de départ du véhicule
+	var xzero = 0;                   // position de départ du véhicule
 	// var DFA = new Boolean(false);// distance de freinage atteinte ?
 	var FRouge = new Boolean(false);
 	// var DAA = 0;
@@ -32,22 +32,25 @@
 
 function accelerate(){
 	console.log("Véhicule ",j," acc")
-	i[j][4] = false
-    if (i[j][2] + ACCELERATION*0.02 <= SPEED_LIMIT/3.6) {  // si le véhicule ne va pas dépasser la limite de vitesse (km/h vers m/s: /3.6)
-		i[j][2] += ACCELERATION*0.02;}						// la boucle s'actualise toute les 20 ms d'où le *0.02
-    else if (i[j][2] > SPEED_LIMIT/3.6){            		// si le véhicule a dépassé la vitesse limite il freine
-		i[j][2] -= ACCELERATION*0.02;}						// ralentir
+	i[j].dfa = false
+    if (i[j].speed + ACCELERATION*0.02 <= SPEED_LIMIT/3.6) {  // si le véhicule ne va pas dépasser la limite de vitesse (km/h vers m/s: /3.6)
+		i[j].speed += ACCELERATION*0.02;}						// la boucle s'actualise toute les 20 ms d'où le *0.02
+    else if (i[j].speed > SPEED_LIMIT/3.6){            		// si le véhicule a dépassé la vitesse limite il freine
+		i[j].speed -= ACCELERATION*0.02;}						// ralentir
 }// fin accelerate()
 
 function decelerate(){
 	console.log("Véhicule ",j," dec")
-	if (i[j][2] >= 0){
-		if (i[j][4] == false){ 		//Pour n'affecter a Decceleration une valeur une seule fois
-			i[j][6] = (i[j][2]*i[j][2])/(2*i[j][5]);     // a = v²/2x
-			i[j][4] = true;
-			i[j][2] -= i[j][6]*0.02;}
+	if (i[j].speed >= 0){
+		if (i[j].dfa == false){ 		//Pour n'affecter a Decceleration une valeur une seule fois
+			i[j].decel = (i[j].speed*i[j].speed)/(2*i[j].daa);     // a = v²/2x
+			i[j].dfa = true;
+			i[j].speed -= i[j].decel*0.02;}
 		else{
-			i[j][2] -= i[j][6]*0.02;}
+			if (i[j].speed > 0.2){
+			i[j].speed -= i[j].decel*0.02;}
+			else{i[j].speed = 0;}
+			}
 	}
 }// fin decelerate()
 
@@ -58,144 +61,99 @@ function stop_it(){
 }// fin stop_it()
 
 function start_it(){
-	var canvas = document.getElementById('mon_canvas');
-    var context = canvas.getContext('2d');
+	var stage = new createjs.Stage("mon_canvas");
     // démarrage de l'animation
-	
-	for (k = 1; k <=i.length; k++){
-		if (i[BALLS-k][3] == true && flag == 0){
-			context.rect(i[BALLS-k][0]-BALL_RADIUS,i[BALLS-k][1]-BALL_RADIUS,25,20);
-			context.fillStyle = "white";
-			context.fill();
 
-			i[BALLS-k][0] = x+k*(BALL_RADIUS*2+BALL_RADIUS/10);
-			i[BALLS-k][3] = false}
+	for (k = 1; k <=i.length; k++){
+		if (i[BALLS-k].end == true && flag == 0){
+			
+			createjs.Tween.get(i[BALLS-k]).to({ alpha: 1, x : xzero+k*(BALL_RADIUS*2+BALL_RADIUS/10) }, 1000, createjs.Ease.getPowInOut(2))
+			i[BALLS-k].end = false}
 	}
-    if (flag == 0 || i[j][2] <= 0){       // pour ne lancer qu'une seule boucle
+    if (flag == 0 || i[j].speed <= 0){       // pour ne lancer qu'une seule boucle
         flag =1;
 		moveCircle();
 		}
 }//fin start_it()
 
 function moveCircle(){
-	if (i[j][3] == false){
-        if (FRouge == true && i[j][0] < WIDTH-DFM){ // si le feu est rouge et que le vehicule ne l'a pas dépassé
-            if(j != 0){	
-				if (i[j-1][0] <= WIDTH-DFM){
-					i[j][5] = (i[j-1][0] -i[j][0] - BALL_RADIUS*2)/10;
+	if (i[j].end == false){
+        if (FRouge == true && i[j].x < WIDTH-DFM){ // si le feu est rouge et que le vehicule ne l'a pas dépassé
+            if(j != 0){
+				if (i[j-1].x <= WIDTH-DFM){
+					i[j].daa = (i[j-1].x -i[j].x - BALL_RADIUS*2)/10;
 				} // La distance avant arret est celle du véhicule au véhicule de devant
-				else {i[j][5] = (WIDTH-DFM - BALL_RADIUS-i[j][0])/10;}
+				else {i[j].daa = (WIDTH-DFM - BALL_RADIUS-i[j].x)/10;}
 			}
             else{ // si le véhicule est premier
-				i[j][5] = (WIDTH-DFM - BALL_RADIUS-i[j][0])/10;
+				i[j].daa = (WIDTH-DFM - BALL_RADIUS-i[j].x)/10;
 				} // La distance avant arret est celle du véhicule au feu
 			}
         else if (j != 0){ //  si le véhicule n'est pas premier
-			i[j][5] = (i[j-1][0] -i[j][0] - BALL_RADIUS*2)/10;} // La distance avant arret est celle du véhicule au véhicule de devant
+			i[j].daa = (i[j-1].x -i[j].x - BALL_RADIUS*2)/10;} // La distance avant arret est celle du véhicule au véhicule de devant
         else{
-			i[j][5] = (WIDTH-BALL_RADIUS-i[j][0])/10;} // La distance avant arret est celle du véhicule au mur
+			i[j].daa = (WIDTH-BALL_RADIUS-i[j].x)/10;} // La distance avant arret est celle du véhicule au mur
 
-        if (i[j][2] != 0){     // si le demarrage ne se fait pas à vitesse nulle SPEED != 0
+        if (i[j].speed != 0){     // si le demarrage ne se fait pas à vitesse nulle SPEED != 0
 
-            console.log("Vitesse Vehicule",j+1," ", i[j][2]*3.6);
+            console.log("Vitesse Vehicule",j+1," ", i[j].speed*3.6);
 
             //if Distance Avant Arret > distance de freinage + Distance de sécurité:
-            if (i[j][5] > ((Math.pow(i[j][2],2))/(2*FRICTION*9.81))+BALL_RADIUS/10 && i[j][4] == false){ // DAA > Distance Freinage requise et DFA == false
+            if (i[j].daa > ((Math.pow(i[j].speed,2))/(2*FRICTION*9.81))+BALL_RADIUS/10 && i[j].dfa == false){ // DAA > Distance Freinage requise et DFA == false
 				accelerate();} // Accélérer
 
-            else if (i[j][5] <= ((Math.pow(i[j][2],2))/(2*FRICTION*9.81))+BALL_RADIUS/10){ // sinon on freine
+            else if (i[j].daa <= ((Math.pow(i[j].speed,2))/(2*FRICTION*9.81))+BALL_RADIUS/10){ // sinon on freine
 				decelerate();} // Décélérer
 
             else{ //si le feu repasse au vert
 				accelerate();}
 		}
         else{ accelerate();}
-			
-			// i[j][0]+=i[j][2]/5;
-			// Position = SPEED/5 (On bouge le véhicule en fonction de sa vitesse calculée plus haut)
-		if (i[j][2] <= 0){ // si la voiture a atteint le mur ou le feu et est arretée
-            i[j][2] = StartSPEED; // Reinitialisation de la vitesse
-            i[j][4] = false;
-            if (i[j][0] >= WIDTH-BALL_RADIUS- j*(BALL_RADIUS*2 + BALL_RADIUS/10 ) - 100){ // si la voiture a atteint le mur
-                i[j][3] = true; //END = true
+
+		if (i[j].speed <= 0){ // si la voiture a atteint le mur ou le feu et est arretée
+            i[j].speed = StartSPEED; // Reinitialisation de la vitesse
+            i[j].dfa = false;
+            if (i[j].x >= WIDTH-BALL_RADIUS- j*(BALL_RADIUS*2 + BALL_RADIUS/10 ) - 100){ // si la voiture a atteint le mur
+                i[j].end = true; //END = true
 				console.log("///////////ENDED Véhicule ",j,"///////////");
                 if (j == BALLS - 1){ // SI le dernier vehicule a atteint le mur
 				stop_it();} // Mettre en pause
 			}
 		}
 	}
-	
+
 	draw();
 	change_circle();
 }// fin de moveCircle
 
 function draw(){
-	console.log("draw() j = ",j)
-	var canvas = document.getElementById('mon_canvas');
-    var context = canvas.getContext('2d');
+	var stage = new createjs.Stage("mon_canvas");
 
-		// on efface le cercle
-	//context.clearRect(i[j][0]-BALL_RADIUS+5,i[j][0]-BALL_RADIUS,25,20);
-	context.rect(i[j][0]-BALL_RADIUS,i[j][1]-BALL_RADIUS,25,20);
-	context.fillStyle = "white";
-	context.fill();
-
+	createjs.Tween.get(i[j]).to({x: i[j].x+i[j].speed/5});
 	
-	console.log(i);
-	i[j][0]+=i[j][2]/5;
-
-		// on le redessine
-	context.beginPath();
-	context.arc(i[j][0], HEIGHT/2, BALL_RADIUS, 0, Math.PI*2);
-	context.fillStyle = Colors[j];
-	context.fill();
-	context.closePath();
-
 	if (flag >0){
 		window.requestAnimationFrame(moveCircle);}
+		
 }// fin de draw()
 
 function change_feu(){
-	var canvas = document.getElementById('mon_canvas');
-    var context = canvas.getContext('2d');
+	var stage = new createjs.Stage("mon_canvas");
+	
 	if (FRouge == false){
-
-		/*context.beginPath();
-		context.arc(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+20), 10, 0, Math.PI*2);
-		context.fillStyle = Colors[j];
-		context.fill();
-		context.closePath();
-		 A DEBUG */
-
-        context.beginPath();
-		context.moveTo(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+10));
-		context.lineTo(WIDTH-DFM,HEIGHT/2-(BALL_RADIUS+30));
-		context.lineWidth = 20;
-		context.strokeStyle = "red";
-		context.stroke();
-		context.closePath();
+		
+		feuRouge.graphics.clear().beginFill("red").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 7.7).endFill();
+		feuVert.graphics.clear().beginFill("white").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
 
 		FRouge = true;}
     else{
+		
+		feuRouge.graphics.clear().beginFill("white").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 7.7).endFill();
+		feuVert.graphics.clear().beginFill("#30c375").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
 
-        /*context.beginPath();
-		context.arc(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+20), 10, 0, Math.PI*2);
-		context.fillStyle = "green";
-		context.fill();
-		context.closePath();
-		 A DEBUG */
-
-		context.beginPath();
-		context.moveTo(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+10));
-		context.lineTo(WIDTH-DFM,HEIGHT/2-(BALL_RADIUS+30));
-		context.lineWidth = 20;
-		context.strokeStyle = 'green';
-		context.stroke();
-		context.closePath();
-
-		FRouge = false;}
-    if (i[j][3] == false){ // si le vehicule n'est pas arreté au mur de fin
+		FRouge = false;
+		if (i[j].end == false){ // si le vehicule n'est pas arreté au mur de fin
 		start_it();}
+		}
 }// fin change_feu()
 
 function change_limit(limit){
@@ -219,57 +177,67 @@ function DoNothing(){
 
 function init(){
 
-    var canvas = document.getElementById('mon_canvas');
-    var context = canvas.getContext('2d');
+	var stage = new createjs.Stage("mon_canvas");
 	
-	alert
+	//var canvas = document.getElementById('mon_canvas');
+    //var context = canvas.getContext('2d');
 
 		//création des objets véhicules
 	for (k = 1; k <=i.length; k++){
-	//                 [             X                    ,   Y     , Vitesse  ,END  , DFA ,       DAA       ,décel]
-		i[BALLS - k] = [x+k*(BALL_RADIUS*2+BALL_RADIUS/10),HEIGHT/2 ,StartSPEED,false,false,WIDTH-BALL_RADIUS,0]
+
+		var circle = new createjs.Shape();
+		
+		circle.graphics.beginFill(Colors[BALLS -k]).drawCircle(0, 0, BALL_RADIUS);
+		circle.x = xzero+k*(BALL_RADIUS*2+BALL_RADIUS/10);
+		circle.y = HEIGHT/2;
+		circle.speed = StartSPEED;
+		circle.end = new Boolean(false);
+		circle.dfa = new Boolean(false);
+		circle.daa = WIDTH-BALL_RADIUS;
+		circle.decel = 0;
+		
+		i[BALLS - k] = circle
+		stage.addChild(circle)
 		// Véhicule i = (x,y, speed, End: Move: Le véhicule a atteint le mur ?,
 		// DFA: Move: Le véhicule a atteint la distance de freinage ?,
 		// DAA: Distance avant que le vehicule doive s'arrêter, Vitesse de decelération)
+	}
+	
+		// création route
+	var route = new createjs.Shape();
+	route.graphics.setStrokeStyle(3).beginStroke("grey");
+	route.graphics.moveTo(0, HEIGHT/2-(BALL_RADIUS+3));		// Ligne du haut
+	route.graphics.lineTo(WIDTH,HEIGHT/2-(BALL_RADIUS+3));
+
+	route.graphics.moveTo(0, HEIGHT/2+(BALL_RADIUS+3));		// Ligne du bas
+	route.graphics.lineTo(WIDTH,HEIGHT/2+(BALL_RADIUS+3));
+	route.graphics.endStroke();
+
+		// création feu
+	var feu = new createjs.Shape();
+	feu.graphics.beginFill('#4f4f4f');
+	feu.graphics.drawRoundRect(WIDTH/2,HEIGHT/2-(BALL_RADIUS+50), 20, 40, Math.PI); // Rectangle du feu
+
+	feu.graphics.setStrokeStyle(1).beginStroke('#969696');
+	feu.graphics.drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 8) // Cercle feu rouge
+
+	feu.graphics.setStrokeStyle(1).beginStroke('#969696');
+	feu.graphics.drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 8) // Cercle feu vert
+	feu.graphics.endStroke();
+	
+	feuRouge = new createjs.Shape();
+	feuRouge.graphics.beginFill("white").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 7.7); // Intérieur feu rouge
+	
+	feuVert = new createjs.Shape();
+	feuVert.graphics.beginFill("#30c375").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7); // Intérieur feu vert
+	
+	
+	stage.addChild(route, feu, feuRouge, feuVert);
 	
 
-		//cercle du vehicule
-	context.beginPath();
-	context.arc(i[BALLS -k][0], i[BALLS -k][1], BALL_RADIUS, 0, Math.PI*2);
-	context.fillStyle = Colors[BALLS-k];
-	context.fill();
-	context.closePath();
-	}
-
-		//route
-	context.beginPath();
-	context.moveTo(0, HEIGHT/2-(BALL_RADIUS+3));
-	context.lineTo(WIDTH,HEIGHT/2-(BALL_RADIUS+3));
-	context.stroke();
-	context.closePath();
-
-	context.beginPath();
-	context.moveTo(0, HEIGHT/2+(BALL_RADIUS+3));
-	context.lineTo(WIDTH,HEIGHT/2+(BALL_RADIUS+3));
-	context.stroke();
-	context.closePath();
-
-		//feu
-
-	/*context.beginPath();
-	context.arc(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+20), 10, 0, Math.PI*2);
-	context.fillStyle = "green";
-	context.fill();
-	context.closePath();
-	 A DEBUG */
-
-	context.beginPath();
-	context.moveTo(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+10));
-	context.lineTo(WIDTH-DFM, HEIGHT/2-(BALL_RADIUS+30));
-	context.lineWidth = 20;
-	context.strokeStyle = 'green';
-	context.stroke();
-	context.closePath();
-
 	console.log("///////////Init Ok///////////");
+	
+	createjs.Ticker.setFPS(80);
+	createjs.Ticker.addEventListener("tick",stage);
+
 	}// fin de init()
