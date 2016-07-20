@@ -1,0 +1,18 @@
+#container
+{
+  height: 700px;
+  position: relative;
+  width: 1000px;
+}
+#mon_canvas
+{
+  height: 100%;
+  width: 100%;
+}
+#controls
+{
+  top: 30;
+  left: 30;
+  position: absolute;
+  width: 100%;
+}

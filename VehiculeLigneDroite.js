@@ -1,6 +1,6 @@
 //variables :
 	// 1 m = 10 px
-	var WIDTH = 1010;            // OF SCREEN IN PIXELS
+	var WIDTH = 510;            // OF SCREEN IN PIXELS
 	var HEIGHT = 400;            // OF SCREEN IN PIXELS
 	var BALLS = 3;               // IN SIMULATION
 	var WALL = 5;                // FROM SIDE IN PIXELS
@@ -227,11 +227,7 @@ function init(){
 		// création route
 	var route = new createjs.Shape();
 	route.graphics.setStrokeStyle(3).beginStroke("grey");
-	route.graphics.moveTo(0, HEIGHT/2-(BALL_RADIUS+3));		// Ligne du haut
-	route.graphics.lineTo(WIDTH,HEIGHT/2-(BALL_RADIUS+3));
-
-	route.graphics.moveTo(0, HEIGHT/2+(BALL_RADIUS+3));		// Ligne du bas
-	route.graphics.lineTo(WIDTH,HEIGHT/2+(BALL_RADIUS+3));
+	route.graphics.drawCircle(WIDTH/2, HEIGHT/2, 199)
 	route.graphics.endStroke();
 
 		// création feu
