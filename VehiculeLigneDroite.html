@@ -4,13 +4,12 @@
 		<meta charset="UTF-8" />
 		<title>Véhicule Ligne Droite</title>
 		<script src = "VehiculeLigneDroite.js" type="application/x-javascript"></script>
-		<script src="https://code.createjs.com/tweenjs-0.6.2.min.js"></script>
 		<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="VehiculeLigneDroite.css">
 
 	</head>
 	<header>
-	<body onload = "init()">
+	<body onload = "alerte()">
 	<button type = "button" onclick="start_it()"> Go </button>
 	<button type = "button" onclick="stop_it()"> Pause </button>
 	<button type = "button" onclick="change_feu()"> Feu </button>
@@ -23,7 +22,7 @@
 	<p> <span id="AfficheAcc">accélération véhicules: 1.39 m/s²</span> </p>
 	</header>
 	
-	<canvas id="mon_canvas" width="1110" height="565">
+	<canvas id="mon_canvas" width="1110" height="545">
             Votre navigateur ne supporte pas l'affichage
     </canvas>
 	</body>

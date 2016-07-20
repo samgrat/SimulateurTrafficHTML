@@ -1,11 +1,11 @@
 //variables :
 	// 1 m = 10 px
-	var WIDTH = 1110;            // OF SCREEN IN PIXELS
-	var HEIGHT = 565;            // OF SCREEN IN PIXELS
+	var WIDTH = 1010;            // OF SCREEN IN PIXELS
+	var HEIGHT = 400;            // OF SCREEN IN PIXELS
 	var BALLS = 3;               // IN SIMULATION
 	var WALL = 5;                // FROM SIDE IN PIXELS
 	var Colors = ["Blue","Orange","red","Brown",'Green']
-	var radFeu = Math.PI;					// distance feu/mur
+	var DFM = 500;					// distance feu/mur
 	//var WALL_FORCE = 400;        // ACCELERATION PER MOVE
 	//var SPEED_LIMIT = 30;        // FOR ball VELOCITY
 	var StartSPEED = 0;           // m  / s : vitesse de départ
@@ -19,7 +19,7 @@
 	var FRICTION = 0.8;          // Coefficient cinétique de friction
 	var MASS = 1500;             // Kg Poids du vehicule
 	var flag = 0;                // critère d'arret
-	var rzero = Math.PI/2;			// angle de départ du véhicule
+	var xzero = 0;                   // position de départ du véhicule
 	// var DFA = new Boolean(false);// distance de freinage atteinte ?
 	var FRouge = new Boolean(false);
 	// var DAA = 0;
@@ -64,6 +64,12 @@ function start_it(){
 	var stage = new createjs.Stage("mon_canvas");
     // démarrage de l'animation
 
+	for (k = 1; k <=i.length; k++){
+		if (i[BALLS-k].end == true && flag == 0){
+			
+			createjs.Tween.get(i[BALLS-k]).to({ alpha: 1, x : xzero+k*(BALL_RADIUS*2+BALL_RADIUS/10) }, 1000, createjs.Ease.getPowInOut(2))
+			i[BALLS-k].end = false}
+	}
     if (flag == 0 || i[j].speed <= 0){       // pour ne lancer qu'une seule boucle
         flag =1;
 		moveCircle();
@@ -71,59 +77,50 @@ function start_it(){
 }//fin start_it()
 
 function moveCircle(){
-        if (FRouge == false){ // si le feu est vert
-            if(j == 0){ // si le véhicule est le véhicule d'indice 0
-					i[j].daa = Math.abs(i[BALLS-1].rad) - Math.abs(i[j].rad) // la distance avant arrêt est la distance entre i[0] et i[BALLS-1]
-					console.log("daa j == 0 feu vert: ", i[j].daa)
-				}
-				else {i[j].daa = Math.abs(i[j-1].rad) - Math.abs(i[j].rad) // la distance avant arrêt est la distance entre i[j] et i[j-1]
-				console.log("daa j != 0 feu vert: ", i[j].daa)}
+	if (i[j].end == false){
+        if (FRouge == true && i[j].x < WIDTH-DFM){ // si le feu est rouge et que le vehicule ne l'a pas dépassé
+            if(j != 0){
+				if (i[j-1].x <= WIDTH-DFM){
+					i[j].daa = (i[j-1].x -i[j].x - BALL_RADIUS*2)/10;
+				} // La distance avant arret est celle du véhicule au véhicule de devant
+				else {i[j].daa = (WIDTH-DFM - BALL_RADIUS-i[j].x)/10;}
 			}
-        else{ // si le feu est rouge
-			if(Math.sin(i[j].rad) <= 0){ // si le véhicule est dans la moitié inférieure du cercle
-				if (j==0 && Math.abs(i[BALLS-1].rad) - Math.abs(i[j].rad) > Math.abs(radFeu) - Math.abs(i[j].rad)){
-					i[j].daa = Math.abs(radFeu) - Math.abs(i[j].rad)
-					console.log("daa j == 0 feu rouge super efficace: ", i[j].daa)
-					} // La distance avant arret est celle du véhicule au feu
-				else if (Math.abs(i[j-1].rad) - Math.abs(i[j].rad) > Math.abs(radFeu) - Math.abs(i[j].rad)){
-					i[j].daa = Math.abs(radFeu) - Math.abs(i[j].rad)
-					console.log("daa j != 0 feu rouge super efficace: ", i[j].daa)
-					} // La distance avant arret est celle du véhicule au feu
-				else{
-					if(j==0){i[j].daa = Math.abs(i[BALLS-1].rad) - Math.abs(i[j].rad)
-						console.log("daa j == 0 feu rouge raté: ", i[j].daa)}
-					else{i[j].daa = Math.abs(i[j-1].rad) - Math.abs(i[j].rad)
-						console.log("daa j != 0 feu rouge raté: ", i[j].daa)}
-				}
+            else{ // si le véhicule est premier
+				i[j].daa = (WIDTH-DFM - BALL_RADIUS-i[j].x)/10;
+				} // La distance avant arret est celle du véhicule au feu
 			}
-			else if(j==0){i[j].daa = Math.abs(i[BALLS-1].rad) - Math.abs(i[j].rad)
-				console.log("daa j == 0 feu rouge seconde moitié: ", i[j].daa)}
-			else{i[j].daa = Math.abs(i[j-1].rad) - Math.abs(i[j].rad)
-				console.log("daa j != 0 feu rouge seconde moitié: ", i[j].daa)}
-			}
+        else if (j != 0){ //  si le véhicule n'est pas premier
+			i[j].daa = (i[j-1].x -i[j].x - BALL_RADIUS*2)/10;} // La distance avant arret est celle du véhicule au véhicule de devant
+        else{
+			i[j].daa = (WIDTH-BALL_RADIUS-i[j].x)/10;} // La distance avant arret est celle du véhicule au mur
 
         if (i[j].speed != 0){     // si le demarrage ne se fait pas à vitesse nulle SPEED != 0
 
             console.log("Vitesse Vehicule",j+1," ", i[j].speed*3.6);
 
             //if Distance Avant Arret > distance de freinage + Distance de sécurité:
-            if (i[j].daa*100 > ((Math.pow(i[j].speed,2))/(2*FRICTION*9.81))+BALL_RADIUS/2 && i[j].dfa == false){ // DAA > Distance Freinage requise et DFA == false
+            if (i[j].daa > ((Math.pow(i[j].speed,2))/(2*FRICTION*9.81))+BALL_RADIUS/10 && i[j].dfa == false){ // DAA > Distance Freinage requise et DFA == false
 				accelerate();} // Accélérer
 
-            else if (i[j].daa*100 <= ((Math.pow(i[j].speed,2))/(2*FRICTION*9.81))+BALL_RADIUS/2){ // sinon on freine
+            else if (i[j].daa <= ((Math.pow(i[j].speed,2))/(2*FRICTION*9.81))+BALL_RADIUS/10){ // sinon on freine
 				decelerate();} // Décélérer
 
             else{ //si le feu repasse au vert
 				accelerate();}
 		}
-        else{ 
-		console.log("balbambaplllalda,da");
-		accelerate();}
+        else{ accelerate();}
 
-		if (i[j].speed <= 0){ // si la voiture le feu et est arretée
+		if (i[j].speed <= 0){ // si la voiture a atteint le mur ou le feu et est arretée
             i[j].speed = StartSPEED; // Reinitialisation de la vitesse
             i[j].dfa = false;
+            if (i[j].x >= WIDTH-BALL_RADIUS- j*(BALL_RADIUS*2 + BALL_RADIUS/10 ) - 100){ // si la voiture a atteint le mur
+                i[j].end = true; //END = true
+				console.log("///////////ENDED Véhicule ",j,"///////////");
+                if (j == BALLS - 1){ // SI le dernier vehicule a atteint le mur
+				stop_it();} // Mettre en pause
+			}
 		}
+	}
 
 	draw();
 	change_circle();
@@ -132,8 +129,7 @@ function moveCircle(){
 function draw(){
 	var stage = new createjs.Stage("mon_canvas");
 
-	i[j].rad -=  i[j].speed/5000;
-	createjs.Tween.get(i[j]).to({x: Math.cos(i[j].rad)*262 + WIDTH/2 -50, y: HEIGHT/2 - Math.sin(i[j].rad)*262});
+	createjs.Tween.get(i[j]).to({x: i[j].x+i[j].speed/5});
 	
 	if (flag >0){
 		window.requestAnimationFrame(moveCircle);}
@@ -145,18 +141,20 @@ function change_feu(){
 	
 	if (FRouge == false){
 		
-		feuRouge.graphics.clear().beginFill("red").drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+39.5), 7.7).endFill();
-		feuVert.graphics.clear().beginFill("white").drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
+		feuRouge.graphics.clear().beginFill("red").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 7.7).endFill();
+		feuVert.graphics.clear().beginFill("white").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
 
 		FRouge = true;}
     else{
 		
-		feuRouge.graphics.clear().beginFill("white").drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+39.5), 7.7).endFill();
-		feuVert.graphics.clear().beginFill("#30c375").drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
+		feuRouge.graphics.clear().beginFill("white").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 7.7).endFill();
+		feuVert.graphics.clear().beginFill("#30c375").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7).endFill();
 
 		FRouge = false;
+		if (i[j].end == false && i[j].x != xzero+j*(BALL_RADIUS*2+BALL_RADIUS/10)){ // si le vehicule n'est pas arreté au mur de fin
 		start_it();}
-		}// fin change_feu()
+		}
+}// fin change_feu()
 
 function change_limit(limit){
 	SPEED_LIMIT = limit;
@@ -172,17 +170,31 @@ function change_circle(){
     else{j += 1;} // Sinon on passe au suivant
 }
 
+function DoNothing(){
+	//ne fait rien
+	var Nothing = null;
+}
+
 function handleEvent(evt){
 	var stage = new createjs.Stage("mon_canvas");
 	
 	if (evt.type == 'mouseover'){
 		createjs.Tween.get(texte).to({x: i[evt.target.number].x, y:i[evt.target.number].y+30});
-		texte.text = "Véhicule: "+(evt.target.number+1)+"\n"+"Position: ("+(i[evt.target.number].x/10).toFixed(2)+" , "+(i[evt.target.number].y/10).toFixed(2)+ ") m"+"\n"+"Vitesse: "+i[evt.target.number].speed.toFixed(2)+" km/h";
+		texte.text = "Véhicule: "+(evt.target.number+1)+"\n"+"Position: "+(i[evt.target.number].x/10).toFixed(2)+") m"+"\n"+"Vitesse: "+i[evt.target.number].speed.toFixed(2)+" km/h";
 		}
 	
 	 if(evt.type == "mouseout"){
 		 texte.text = ""
 	 }
+}
+function alerte(){
+	var person = prompt("Entrer le nombre de véhicules souhaité: ", "3");
+if (person > 0 && person < 6) {
+    BALLS = person;
+	init();
+} else{
+	alert("Veuillez rentrer un chiffre entre 1 et 5")
+	alerte()}
 }
 
 function init(){
@@ -200,10 +212,10 @@ function init(){
 		var circle = new createjs.Shape();
 		
 		circle.graphics.beginFill(Colors[BALLS -k]).drawCircle(0, 0, BALL_RADIUS);
-		circle.rad = rzero -  (k-1)*(Math.PI/38)
-		circle.x = Math.cos(circle.rad)*262 + WIDTH/2 -50
-		circle.y = HEIGHT/2 - Math.sin(circle.rad)*262
+		circle.x = xzero+k*(BALL_RADIUS*2+BALL_RADIUS/10);
+		circle.y = HEIGHT/2;
 		circle.speed = StartSPEED;
+		circle.end = new Boolean(false);
 		circle.dfa = new Boolean(false);
 		circle.daa = WIDTH-BALL_RADIUS;
 		circle.decel = 0;
@@ -224,30 +236,30 @@ function init(){
 		// création route
 	var route = new createjs.Shape();
 	route.graphics.setStrokeStyle(3).beginStroke("grey");
-	route.graphics.drawCircle(WIDTH/2 -50, HEIGHT/2, 275)
-	route.graphics.endStroke();
-	
-	route.graphics.setStrokeStyle(3).beginStroke("grey");
-	route.graphics.drawCircle(WIDTH/2 -50, HEIGHT/2, 275 - (BALL_RADIUS*2+6))
+	route.graphics.moveTo(0, HEIGHT/2-(BALL_RADIUS+3));		// Ligne du haut
+	route.graphics.lineTo(WIDTH,HEIGHT/2-(BALL_RADIUS+3));
+
+	route.graphics.moveTo(0, HEIGHT/2+(BALL_RADIUS+3));		// Ligne du bas
+	route.graphics.lineTo(WIDTH,HEIGHT/2+(BALL_RADIUS+3));
 	route.graphics.endStroke();
 
 		// création feu
 	var feu = new createjs.Shape();
 	feu.graphics.beginFill('#4f4f4f');
-	feu.graphics.drawRoundRect(WIDTH/2- 350,HEIGHT/2-(BALL_RADIUS+50), 20, 40, Math.PI); // Rectangle du feu
+	feu.graphics.drawRoundRect(WIDTH/2,HEIGHT/2-(BALL_RADIUS+50), 20, 40, Math.PI); // Rectangle du feu
 
 	feu.graphics.setStrokeStyle(1).beginStroke('#969696');
-	feu.graphics.drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+39.5), 8) // Cercle feu rouge
+	feu.graphics.drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 8) // Cercle feu rouge
 
 	feu.graphics.setStrokeStyle(1).beginStroke('#969696');
-	feu.graphics.drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+21), 8) // Cercle feu vert
+	feu.graphics.drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 8) // Cercle feu vert
 	feu.graphics.endStroke();
 	
 	feuRouge = new createjs.Shape();
-	feuRouge.graphics.beginFill("white").drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+39.5), 7.7); // Intérieur feu rouge
+	feuRouge.graphics.beginFill("white").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+39.5), 7.7); // Intérieur feu rouge
 	
 	feuVert = new createjs.Shape();
-	feuVert.graphics.beginFill("#30c375").drawCircle(WIDTH/2- 340,HEIGHT/2-(BALL_RADIUS+21), 7.7); // Intérieur feu vert
+	feuVert.graphics.beginFill("#30c375").drawCircle(WIDTH/2+ 10,HEIGHT/2-(BALL_RADIUS+21), 7.7); // Intérieur feu vert
 	
 	
 	stage.addChild(route, feu, feuRouge, feuVert, texte);
